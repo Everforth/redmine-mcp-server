@@ -4,6 +4,8 @@ Redmine を運用保守で使っているチーム向けの MCP サーバー。C
 
 書き込み系はコメント追加のみ。チケット作成 / 削除 / ステータス変更 / 担当者変更 / 優先度変更 / wiki 編集は意図的に実装していません。
 
+公開 Docker イメージ（`ikutani41/redmine-mcp-server`）を Docker Hub に置いてあるので、clone やビルドなしで使えます。カスタマイズしたい場合のみ後述の「自分でビルドして使いたい場合」を参照してください。
+
 ## ツール
 
 - `get_redmine_issue` — チケットを 1 件取得
@@ -23,26 +25,13 @@ Redmine を運用保守で使っているチーム向けの MCP サーバー。C
 
 API キーは `X-Redmine-API-Key` ヘッダでのみ送信されます。stdout・ツール応答・stderr ログのいずれにも出力されません。
 
-## Docker
-
-```sh
-docker build -t redmine-mcp-server .
-
-docker run -i --rm \
-  -e REDMINE_URL=https://redmine.example.com \
-  -e REDMINE_API_KEY=xxxxxxxxxxxxxxxx \
-  redmine-mcp-server
-```
-
-stdio で MCP を喋ります。デタッチ実行（`-d`）やポート公開は不要です。
-
 ## Claude Code への登録
 
-ユーザースコープ（`~/.claude.json`、自分のマシン全体で利用可能）で登録します。Docker イメージ（`redmine-mcp-server`）が手元にビルドされていることを前提にしています。
+ユーザースコープ（`~/.claude.json`、自分のマシン全体で利用可能）で登録します。
 
 ### 1. エントリを作る
 
-API キー部分は仮値のままで OK。先にエントリだけ作っておきます。
+API キー部分は仮値のままで OK。先にエントリだけ作っておきます。Docker は初回起動時に Docker Hub からイメージを自動 pull します。
 
 ```sh
 claude mcp add redmine \
@@ -53,7 +42,7 @@ claude mcp add redmine \
   -- docker run -i --rm \
     -e REDMINE_URL \
     -e REDMINE_API_KEY \
-    redmine-mcp-server
+    ikutani41/redmine-mcp-server
 ```
 
 ### 2. API キーを書き込む
@@ -92,6 +81,14 @@ npm run dev          # tsx watch
 # または
 npm run build && npm start
 ```
+
+### 自分でビルドして使いたい場合
+
+```sh
+docker build -t redmine-mcp-server .
+```
+
+`claude mcp add` のコマンド末尾の `ikutani41/redmine-mcp-server` を `redmine-mcp-server` に差し替えれば、自前ビルドのイメージが使われます。
 
 ### スモークテスト（Redmine 不要）
 
