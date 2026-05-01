@@ -31,7 +31,7 @@ API キーは `X-Redmine-API-Key` ヘッダでのみ送信されます。stdout�
 
 ### 1. エントリを作る
 
-API キー部分は仮値のままで OK。先にエントリだけ作っておきます。Docker は初回起動時に Docker Hub からイメージを自動 pull します。
+API キー部分は仮値のままで OK。先にエントリだけ作っておきます。`--pull always` を付けているので、起動のたびに Docker Hub の最新イメージを取得します。
 
 ```sh
 claude mcp add redmine \
@@ -39,7 +39,7 @@ claude mcp add redmine \
   --transport stdio \
   --env REDMINE_URL=https://xxx.cloud.redmine.jp \
   --env REDMINE_API_KEY=xxxxx \
-  -- docker run -i --rm \
+  -- docker run -i --rm --pull always \
     -e REDMINE_URL \
     -e REDMINE_API_KEY \
     ikutani41/redmine-mcp-server
