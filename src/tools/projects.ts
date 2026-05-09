@@ -42,4 +42,37 @@ export function registerProjectTools(server: McpServer, client: RedmineClient): 
         return ok(data);
       }),
   );
+
+  server.registerTool(
+    "list_redmine_members",
+    {
+      title: "List Redmine project members",
+      description:
+        "List members of a project. Use this to find user ids before assigning an issue.",
+      inputSchema: {
+        project_id: z.number().int().positive().describe("Project numeric id"),
+        limit: z.number().int().min(1).max(100).optional().describe("default 25, max 100"),
+        offset: z.number().int().min(0).optional().describe("Pagination offset (0-based)"),
+      },
+    },
+    async ({ project_id, ...pagination }) =>
+      runTool(async () => {
+        const data = await client.get(`projects/${project_id}/memberships.json`, pagination);
+        return ok(data);
+      }),
+  );
+
+  server.registerTool(
+    "list_redmine_statuses",
+    {
+      title: "List Redmine issue statuses",
+      description: "List all available issue statuses. Use this to find the status id before updating an issue.",
+      inputSchema: {},
+    },
+    async () =>
+      runTool(async () => {
+        const data = await client.get("issue_statuses.json");
+        return ok(data);
+      }),
+  );
 }

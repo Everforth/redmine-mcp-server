@@ -65,28 +65,39 @@ export function registerIssueTools(server: McpServer, client: RedmineClient): vo
   );
 
   server.registerTool(
-    "add_redmine_issue_comment",
+    "update_redmine_issue",
     {
-      title: "Add a comment to a Redmine issue",
+      title: "Update a Redmine issue",
       description:
-        "Append a note (comment) to an existing Redmine issue without changing any other field. Status, assignee, priority, etc. cannot be modified through this tool.",
+        "Update fields of an existing Redmine issue, or add a comment. All fields are optional — only supplied fields are changed. Passing only notes adds a comment without changing any field. Use list_redmine_statuses to find status ids and list_redmine_members to find user ids.",
       inputSchema: {
         id: z.number().int().positive().describe("Issue numeric id"),
+        status_id: z.number().int().positive().optional().describe("Status numeric id"),
+        assigned_to_id: z
+          .number()
+          .int()
+          .min(0)
+          .optional()
+          .describe("User numeric id. Set 0 to unassign."),
+        done_ratio: z
+          .number()
+          .int()
+          .min(0)
+          .max(100)
+          .optional()
+          .describe("Progress percentage (0–100)"),
         notes: z
           .string()
           .min(1)
           .max(65535)
-          .describe("Comment body (textile or markdown depending on Redmine setup)"),
-        private_notes: z
-          .boolean()
           .optional()
-          .describe("If true, the note is visible only to users with permission"),
+          .describe("Comment to add. Can be used alone or alongside field updates."),
       },
     },
-    async ({ id, notes, private_notes }) =>
+    async ({ id, ...fields }) =>
       runTool(async () => {
-        await client.put(`issues/${id}.json`, { issue: { notes, private_notes } });
-        return ok({ added: true, id });
+        await client.put(`issues/${id}.json`, { issue: fields });
+        return ok({ updated: true, id });
       }),
   );
 }

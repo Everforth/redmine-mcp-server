@@ -1,8 +1,8 @@
 # redmine-mcp-server
 
-Redmine を運用保守で使っているチーム向けの MCP サーバー。Claude Code から Redmine のチケット・プロジェクトを参照し、必要に応じてチケットへコメントを追加するためのものです。`docker run -i --rm` で起動して stdio 経由で接続します。
+Redmine を運用保守で使っているチーム向けの MCP サーバー。Claude Code から Redmine のチケット・プロジェクトを参照し、チケットのステータス・担当者・進捗率の更新やコメント追加を行えます。`docker run -i --rm` で起動して stdio 経由で接続します。
 
-書き込み系はコメント追加のみ。チケット作成 / 削除 / ステータス変更 / 担当者変更 / 優先度変更 / wiki 編集は意図的に実装していません。
+読み取り中心の設計で、書き込みはチケット更新（ステータス・担当者・進捗率・コメント）のみ。チケット作成 / 削除 / 優先度変更 / wiki 編集は意図的に実装していません。
 
 公開 Docker イメージ（`ikutani41/redmine-mcp-server`）を Docker Hub に置いてあるので、clone やビルドなしで使えます。カスタマイズしたい場合のみ後述の「自分でビルドして使いたい場合」を参照してください。
 
@@ -10,9 +10,11 @@ Redmine を運用保守で使っているチーム向けの MCP サーバー。C
 
 - `get_redmine_issue` — チケットを 1 件取得
 - `list_redmine_issues` — チケット一覧（プロジェクトや担当者などで絞り込み）
-- `add_redmine_issue_comment` — 既存チケットへコメント追加（他フィールドは変更不可）
+- `update_redmine_issue` — チケット更新（ステータス・担当者・進捗率・コメント）
 - `list_redmine_projects` — プロジェクト一覧
 - `get_redmine_project` — プロジェクトを 1 件取得
+- `list_redmine_members` — プロジェクトのメンバー一覧
+- `list_redmine_statuses` — ステータス一覧
 
 詳細な引数は `tools/list` で確認してください。
 
@@ -59,7 +61,7 @@ Claude Code を再起動した後、`/mcp` を実行して `redmine` が `connec
 ## セキュリティ方針
 
 - API キーは `REDMINE_API_KEY` 環境変数からのみ読み取り。Docker イメージに焼き込まないこと。
-- コメント追加以外の書き込みツールは存在しません。隠れた更新経路もありません。
+- 書き込みはチケット更新（ステータス・担当者・進捗率・コメント）のみ。チケット作成・削除は実装していません。
 - MCP クライアントへ返すエラーは要約済み。生 URL・ヘッダ・API キーはエラーメッセージに含まれません。
 
 ---
@@ -101,4 +103,4 @@ docker build -t redmine-mcp-server .
 REDMINE_URL=http://example.test REDMINE_API_KEY=stub node dist/server.js
 ```
 
-stdout に 5 個のツールが返れば OK。
+stdout に 7 個のツールが返れば OK。
